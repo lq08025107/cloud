@@ -63,7 +63,7 @@ class SQLiteWrapper(object):
             conn = self.get_conn()
             kwargs['conn'] = conn
             rs = func(self, *args, **kwargs)
-            self.conn_close()
+            self.conn_close(conn)
             self.lock.release()
             return rs
         return connection
@@ -129,7 +129,7 @@ def gen_chengjiao_insert_command(info_dict):
             t.append('')
     t = tuple(t)
     command = (r"insert into chengjiao values(?,?,?,?,?,?,?,?,?,?,?,?,?)", t)
-    print command
+    #print command
     return command
 
 def xiaoqu_spider(db_xq, url_page=u"http://bj.lianjia.com/xiaoqu/changping/"):
@@ -151,23 +151,6 @@ def xiaoqu_spider(db_xq, url_page=u"http://bj.lianjia.com/xiaoqu/changping/"):
     except Exception,e:
         print e
         exit(-1)
-    #待完成
-    # plain_text = unicode(source_code)
-    # soup = BeautifulSoup(plain_text)
-    # xiaoqu_list = soup.findAll('li', {'class': 'clear xiaoquListItem'})
-    #
-    # for xq in xiaoqu_list:
-    #     info_dict = {}
-    #
-    #     info_dict.update({u'小区名称': xq.find('div', {'class':'title'}).text})
-    #     content = xq.find('div', {'class': 'positionInfo'})
-    #     info = []
-    #     print content.find('a', {'class':'district'}).text
-    #     info.append(content.find('a', {'class':'district'}).text)
-    #     info.append(content.find('a', {'class': 'bizcircle'}).text)
-    #     info.append(xq.find('div', {'class': 'positionInfo'}).text)
-    #
-    #     print info[0], info[1], info[2]
 
     xiaoqu_list = soup.findAll('li', {'class': 'clear xiaoquListItem'})
 
@@ -181,7 +164,9 @@ def xiaoqu_spider(db_xq, url_page=u"http://bj.lianjia.com/xiaoqu/changping/"):
         #小区域
         info.append(content.find('a', {'class': 'bizcircle'}).text)
         #详细信息
-        info.append(content.find('a', {'class': 'bizcircle'}).next_sibling.strip())
+        detail = content.find('a', {'class': 'bizcircle'}).next_sibling.strip().replace(' ', '')
+
+        info.append(detail)
 
         if info:
             info_dict.update({u'大区域':info[0]})
@@ -199,6 +184,7 @@ def do_xiaoqu_spider(db_xq,region=u"昌平"):
     """
     url = u"http://bj.lianjia.com/xiaoqu/rs"+region+"/"
     try:
+
         req = urllib2.Request(url,headers=hds[random.randint(0,len(hds)-1)])
         source_code = urllib2.urlopen(req,timeout=5).read()
         plain_text = unicode(source_code)
@@ -219,6 +205,7 @@ def do_xiaoqu_spider(db_xq,region=u"昌平"):
         t = threading.Thread(target=xiaoqu_spider, args=(db_xq,url_page))
         threads.append(t)
     for t in threads:
+        time.sleep(1)
         t.start()
     for t in threads:
         t.join()
