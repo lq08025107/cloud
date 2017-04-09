@@ -57,8 +57,8 @@ execution = pattern.findall(html_content)[0]
 
 # data
 data = {
-    'username': 'your username',  # 替换为自己账户的用户名
-    'password': 'your password',  # 替换为自己账户的密码
+    'username': '17744564979',  # 替换为自己账户的用户名
+    'password': '13191200148',  # 替换为自己账户的密码
     'execution': execution,
     '_eventId': 'submit',
     'lt': lt,
@@ -98,4 +98,4 @@ except urllib2.HTTPError, e:
     result = opener.open(req)
     req = urllib2.Request(chengjiao_url)
     result = opener.open(req).read()
-    # print result
+    print result

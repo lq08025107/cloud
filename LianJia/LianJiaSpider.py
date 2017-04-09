@@ -9,10 +9,12 @@ import sqlite3
 import random
 import threading
 from bs4 import BeautifulSoup
+import time
 
 import sys
 reload(sys)
 sys.setdefaultencoding("utf-8")
+import LianJiaLogin
 
 #User Agent
 hds=[{'User-Agent':'Mozilla/5.0 (Windows; U; Windows NT 6.1; en-US; rv:1.9.1.6) Gecko/20091201 Firefox/3.5.6'},\
@@ -138,6 +140,7 @@ def xiaoqu_spider(db_xq, url_page=u"http://bj.lianjia.com/xiaoqu/changping/"):
     :return:
     """
     try:
+        time.sleep(1)
         req = urllib2.Request(url_page,headers=hds[random.randint(0,len(hds)-1)])
         source_code = urllib2.urlopen(req,timeout=10).read()
         plain_text = unicode(source_code)
@@ -178,7 +181,7 @@ def xiaoqu_spider(db_xq, url_page=u"http://bj.lianjia.com/xiaoqu/changping/"):
         #小区域
         info.append(content.find('a', {'class': 'bizcircle'}).text)
         #详细信息
-        info.append(xq.find('div', {'class': 'positionInfo'}).text)
+        info.append(content.find('a', {'class': 'bizcircle'}).next_sibling.strip())
 
         if info:
             info_dict.update({u'大区域':info[0]})
@@ -206,11 +209,8 @@ def do_xiaoqu_spider(db_xq,region=u"昌平"):
     except Exception, e:
         print e
         return
-    d = soup.find('div',{'class':'page-box house-lst-page-box'})
-    d = d.get('page-data')
-
+    d = "d=" + soup.find('div', {'class': 'page-box house-lst-page-box'}).get('page-data')
     exec (d)
-    print d
     total_pages = d['totalPage']
 
     threads = []
@@ -236,7 +236,7 @@ def chengjiao_spider(db_cj, url_page=u"http://bj.lianjia.com/chengjiao/pg1rs%E5%
         req = urllib2.Request(url_page, headers=hds[random.randint(0, len(hds) - 1)])
         source_code = urllib2.urlopen(req, timeout=5).read()
         plain_text = unicode(source_code)
-        soup = BeautifulSoup(plain_text)
+        soup = BeautifulSoup(plain_text,"html.parser")
     except (urllib2.HTTPError, urllib2.URLError), e:
         print e
         exception_write('chengjiao_spider',url_page)
@@ -290,7 +290,7 @@ def xiaoqu_chengjiao_spider(db_cj,xq_name=u'名佳花园三区'):
         req = urllib2.Request(url, headers=hds[random.randint(0, len(hds) - 1)])
         source_code = urllib2.urlopen(req, timeout=10).read()
         plain_text = unicode(source_code)  # ,errors='ignore')
-        soup = BeautifulSoup(plain_text)
+        soup = BeautifulSoup(plain_text, "html.parser")
     except (urllib2.HTTPError, urllib2.URLError), e:
         print e
         exception_write('xiaoqu_chengjiao_spider', xq_name)
